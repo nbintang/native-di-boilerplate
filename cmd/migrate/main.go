@@ -1,0 +1,19 @@
+package main
+
+import (
+	"context"
+	"native-setup/pkg/env"
+	"flag"
+	"github.com/sirupsen/logrus"
+)
+
+func main() {
+	ctx := context.Background()
+	reset := flag.Bool("reset", false, "Drop all tables then migrate")
+	flag.Parse()
+	env.Load()
+	if err := InitMigrate(ctx, reset); err != nil {
+		logrus.Warnf("Migration failed: %v", err)
+	}
+	logrus.Println("Migration Succeed")
+}

@@ -1,0 +1,23 @@
+package user
+
+import (
+	"native-setup/internal/http/router"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+type UserRouteParams struct {
+	UserHandler UserHandler
+}
+type userRouteImpl struct {
+	userHandler UserHandler
+}
+
+func NewUserRoute(params UserRouteParams) router.Route {
+	return &userRouteImpl{userHandler: params.UserHandler}
+}
+func (r *userRouteImpl) RegisterRoute(route fiber.Router) {
+	users := route.Group("/users") 
+	users.Get("/", r.userHandler.GetAllUsers)
+	users.Get("/:id", r.userHandler.GetUserByID)
+}

@@ -1,0 +1,16 @@
+package internal
+
+import (
+	"native-setup/internal/http/router"
+)
+
+type RoutesIn struct {
+	BootstrapApp *Bootstrap
+	Routes       []router.Route
+}
+
+func RegisterRoutes(in RoutesIn) {
+	for _, r := range in.Routes {
+		r.RegisterRoute(in.BootstrapApp.Route)
+	}
+}
