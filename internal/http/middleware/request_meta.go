@@ -3,23 +3,22 @@ package middleware
 import (
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
-func RequestMeta() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+func RequestMeta() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		start := time.Now()
-		err := c.Next()
-		
-		c.Locals("method", c.Method())
-		c.Locals("path", c.OriginalURL())
-		if c.Route() != nil {
-			c.Locals("endpoint", c.Route().Path)
+		c.Next()
+		status := c.Writer.Status()
+			endpoint := c.FullPath()
+		c.Set("method", c.Request.Method)
+		c.Set("path", c.Request.URL.Path)
+		if endpoint != "" {
+			c.Set("endpoint", endpoint)
 		}
-		c.Locals("status", c.Response().StatusCode())
-		c.Locals("latency", time.Since(start).String())
-		c.Locals("ip", c.IP())
-
-		return err
+		c.Set("status", status)
+		c.Set("latency", time.Since(start).String())
+		c.Set("ip", c.ClientIP())
 	}
 }

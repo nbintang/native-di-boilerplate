@@ -1,8 +1,8 @@
 package router
 
-import "github.com/gofiber/fiber/v2"
+import "github.com/gin-gonic/gin"
 
 type Route interface {
-	RegisterRoute(route fiber.Router)
+	RegisterRoute(route *gin.RouterGroup)
 }
  

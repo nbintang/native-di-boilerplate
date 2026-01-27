@@ -2,42 +2,46 @@ package internal
 
 import (
 	"native-setup/config"
-	"native-setup/internal/http"
 	"native-setup/internal/http/middleware"
 	"native-setup/internal/infra/infraapp"
+	"net/http"
+	nhttp "native-setup/internal/http"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 type Bootstrap struct {
-	*fiber.App
-	Route          fiber.Router 
-	Env            config.Env
-	Logger         *infraapp.AppLogger
-	// Create an Accessable service instance inject it here
+	*gin.Engine
+	Route  *gin.RouterGroup
+	Env    config.Env
+	Logger *infraapp.AppLogger
+	Server *http.Server 
 }
 
 func NewBootstrap(env config.Env, logger *infraapp.AppLogger) *Bootstrap {
-	app := fiber.New(fiber.Config{
-		ErrorHandler: http.DefaultErrorHandler,
-		AppName:      "Fiber Rest API",
-	})
+	app := gin.New()
+	app.Use(gin.Recovery())
 	app.Use(middleware.LoggerRequest(logger))
 	app.Use(middleware.RequestMeta())
-	app.Use(cors.New(cors.ConfigDefault))
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Status(200).SendString("Welcome to API, Go to /api/v1")
+	app.Use(cors.Default())
+	app.Use(nhttp.DefaultErrorHandler())
+	app.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to API, Go to /api/v1",
+		})
 	})
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	v1.Get("/", func(c *fiber.Ctx) error {
-		return c.Status(200).SendString("Checkout /users endpoint!")
+	v1.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to Version 1, Go to /api/v1/users",
+		})
 	})
 
 	return &Bootstrap{
-		App:    app,
+		Engine: app,
 		Route:  v1,
 		Env:    env,
 		Logger: logger,

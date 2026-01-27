@@ -22,6 +22,6 @@ func Build(params Params) Module {
 	repo := NewUserRepository(params.DB)
 	service := NewUserService(repo, params.Logger)
 	handler := NewUserHandler(service, params.Logger, params.Validator);
-	route := NewUserRoute(UserRouteParams{UserHandler: handler})
+	route := NewUserRoute(handler)
 	return Module{Route: route}
 }

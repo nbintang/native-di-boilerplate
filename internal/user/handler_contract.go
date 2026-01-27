@@ -1,9 +1,8 @@
 package user
 
-import "github.com/gofiber/fiber/v2"
+import "github.com/gin-gonic/gin"
 
 type UserHandler interface {
-	GetAllUsers(c *fiber.Ctx) error
-	GetUserByID(c *fiber.Ctx) error 
-	
+	GetAllUsers(c *gin.Context)  
+	GetUserByID(c *gin.Context)  
 }

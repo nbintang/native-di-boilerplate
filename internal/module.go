@@ -6,8 +6,9 @@ import (
 	"native-setup/internal/http/router"
 	"native-setup/internal/infra"
 	"native-setup/internal/user"
+	"net/http"
 )
- 
+
 type Params struct {
 	Env   config.Env
 	Infra infra.Module
@@ -39,21 +40,30 @@ func Build(params Params) Module {
 	if addr == "" {
 		addr = ":8080"
 	}
-	
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: bootstrap.Engine,
+	}
+
+	bootstrap.Server = srv
+
 	go func() {
-		params.Infra.Logger.Printf("Fiber listening on %s", addr)
-		if err := bootstrap.Listen(addr); err != nil {
-			params.Infra.Logger.Printf("Fiber stopped: %s", err)
+		params.Infra.Logger.Printf("Gin listening on http://localhost%s", addr)
+		if err := bootstrap.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			params.Infra.Logger.Printf("Gin stopped: %s", err)
 		}
 	}()
-	
+
 	stop := func(ctx context.Context) error {
-		_ = bootstrap.Shutdown()
+		if bootstrap.Server != nil {
+			_ = bootstrap.Server.Shutdown(ctx)
+		}
 		return params.Infra.Stop(ctx)
 	}
-	
+
 	return Module{
 		Bootstrap: bootstrap,
-		Stop: stop,
+		Stop:      stop,
 	}
 }

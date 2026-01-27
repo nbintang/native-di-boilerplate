@@ -3,21 +3,18 @@ package user
 import (
 	"native-setup/internal/http/router"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin" 
 )
-
-type UserRouteParams struct {
-	UserHandler UserHandler
-}
+ 
 type userRouteImpl struct {
 	userHandler UserHandler
 }
 
-func NewUserRoute(params UserRouteParams) router.Route {
-	return &userRouteImpl{userHandler: params.UserHandler}
+func NewUserRoute(userHandler UserHandler) router.Route {
+	return &userRouteImpl{userHandler}
 }
-func (r *userRouteImpl) RegisterRoute(route fiber.Router) {
+func (r *userRouteImpl) RegisterRoute(route *gin.RouterGroup) {
 	users := route.Group("/users") 
-	users.Get("/", r.userHandler.GetAllUsers)
-	users.Get("/:id", r.userHandler.GetUserByID)
+	users.GET("/", r.userHandler.GetAllUsers)
+	users.GET("/:id", r.userHandler.GetUserByID)
 }

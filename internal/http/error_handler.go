@@ -2,73 +2,89 @@ package http
 
 import (
 	"errors"
+	"net/http"
 
 	"native-setup/internal/apperr"
 	"native-setup/pkg/httpx"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
 )
 
-func DefaultErrorHandler(c *fiber.Ctx, err error) error {
-	statusCode := fiber.StatusInternalServerError
-	msg := "Internal Server Error"
+func DefaultErrorHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
 
-	var detail any = nil
-	var code any = nil
-
-	switch {
-	case errors.As(err, new(*apperr.AppError)):
-		var ae *apperr.AppError
-		_ = errors.As(err, &ae)
-
-		statusCode = ae.Status
-		msg = ae.Message
-		code = string(ae.Code)
-
-	case errors.As(err, new(validator.ValidationErrors)):
-		var ve validator.ValidationErrors
-		_ = errors.As(err, &ve)
-
-		out := make([]fiber.Map, 0, len(ve))
-		for _, fe := range ve {
-			out = append(out, fiber.Map{
-				"field": fe.Field(),
-				"tag":   fe.Tag(),
-			})
+		// kalau tidak ada error, lanjut
+		if len(c.Errors) == 0 {
+			return
 		}
 
-		statusCode = fiber.StatusUnprocessableEntity
-		msg = "Validation Error"
-		code = "VALIDATION_ERROR"
-		detail = out
+		// ambil error terakhir (paling relevan)
+		err := c.Errors.Last().Err
 
-	case errors.As(err, new(*fiber.Error)):
-		var fe *fiber.Error
-		_ = errors.As(err, &fe)
+		statusCode := http.StatusInternalServerError
+		msg := "Internal Server Error"
 
-		statusCode = fe.Code
-		msg = fe.Message
-		code = "FIBER_ERROR"
+		var detail any = nil
+		var code any = nil
 
-	default:
-		code = "INTERNAL"
-	}
+		switch {
+		case errors.As(err, new(*apperr.AppError)):
+			var ae *apperr.AppError
+			_ = errors.As(err, &ae)
 
-	return c.Status(statusCode).JSON(httpx.NewHttpResponse(
-		statusCode,
-		msg,
-		fiber.Map{
-			"code":  code,
-			"error": detail,
-			"meta": fiber.Map{
-				"method":   c.Locals("method"),
-				"path":     c.Locals("path"),
-				"endpoint": c.Locals("endpoint"),
-				"status":   statusCode,
-				"latency":  c.Locals("latency"),
-				"ip":       c.Locals("ip"),
+			statusCode = ae.Status
+			msg = ae.Message
+			code = string(ae.Code)
+
+		case errors.As(err, new(validator.ValidationErrors)):
+			var ve validator.ValidationErrors
+			_ = errors.As(err, &ve)
+
+			out := make([]gin.H, 0, len(ve))
+			for _, fe := range ve {
+				out = append(out, gin.H{
+					"field": fe.Field(),
+					"tag":   fe.Tag(),
+				})
+			}
+
+			statusCode = http.StatusUnprocessableEntity
+			msg = "Validation Error"
+			code = "VALIDATION_ERROR"
+			detail = out
+
+		default:
+			code = "INTERNAL"
+		}
+
+		// meta: ambil dari context.Set(...) yang kamu isi di RequestMeta middleware
+		meta := gin.H{
+			"method":   getAny(c, "method"),
+			"path":     getAny(c, "path"),
+			"endpoint": getAny(c, "endpoint"),
+			"status":   statusCode,
+			"latency":  getAny(c, "latency"),
+			"ip":       getAny(c, "ip"),
+		}
+
+		c.AbortWithStatusJSON(statusCode, httpx.NewHttpResponse(
+			statusCode,
+			msg,
+			gin.H{
+				"code":  code,
+				"error": detail,
+				"meta":  meta,
 			},
-		},
-	))
+		))
+	}
+}
+
+func getAny(c *gin.Context, key string) any {
+	v, ok := c.Get(key)
+	if !ok {
+		return nil
+	}
+	return v
 }

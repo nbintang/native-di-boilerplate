@@ -1,13 +1,14 @@
 package user
 
 import (
-	"native-setup/internal/apperr" 
+	"native-setup/internal/apperr"
 	"native-setup/internal/infra/infraapp"
 	"native-setup/internal/infra/validator"
 	"native-setup/pkg/httpx"
 	"native-setup/pkg/pagination"
+	"net/http"
 
-	"github.com/gofiber/fiber/v2" 
+	"github.com/gin-gonic/gin"
 )
 
 type userHandlerImpl struct {
@@ -20,38 +21,46 @@ func NewUserHandler(userService UserService, logger *infraapp.AppLogger, validat
 	return &userHandlerImpl{userService, logger, validator}
 }
 
-func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
-	ctx := c.UserContext()
+func (h *userHandlerImpl) GetAllUsers(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var query pagination.Query
-	if err := c.QueryParser(&query); err != nil {
-		return apperr.BadRequest(apperr.CodeBadRequest, "Invalid Request", err)
+	if err := c.ShouldBindQuery(&query); err != nil { 
+		_ = c.Error(apperr.BadRequest(apperr.CodeBadRequest, "Invalid Request", err))
+		return
 	}
 
 	query = query.Normalize(10, 100)
 
 	data, total, err := h.userService.FindAllUsers(ctx, query.Page, query.Limit, query.Offset())
 	if err != nil {
-		return err
+		_ = c.Error(err)
+		return
 	}
 
 	meta := pagination.NewMeta(query.Page, query.Limit, total)
-	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpPaginationResponse[[]UserResponseDTO](
-		fiber.StatusOK,
+
+	c.JSON(http.StatusOK, httpx.NewHttpPaginationResponse[[]UserResponseDTO](
+		http.StatusOK,
 		"Success",
 		data,
 		meta,
 	))
 }
 
-func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
-	id := c.Params("id")
-	 
-	ctx := c.UserContext()
+func (h *userHandlerImpl) GetUserByID(c *gin.Context) {
+	id := c.Param("id")
+	ctx := c.Request.Context()
+
 	data, err := h.userService.FindUserByID(ctx, id)
 	if err != nil {
-		return err
+		_ = c.Error(err)
+		return
 	}
-	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", data))
-}
- 
 
+	c.JSON(http.StatusOK, httpx.NewHttpResponse(
+		http.StatusOK,
+		"Success",
+		data,
+	))
+}

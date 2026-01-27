@@ -1,27 +1,32 @@
 package middleware
 
-import ( 
+import (
 	"native-setup/internal/infra/infraapp"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin" 
 	"github.com/sirupsen/logrus"
 )
 
-func LoggerRequest(l *infraapp.AppLogger) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+func LoggerRequest(l *infraapp.AppLogger) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		start := time.Now()
-		err := c.Next()
+	 c.Next() 
+		
+		status := c.Writer.Status()
+		
+		endpoint := ""
+		if c.FullPath() != ""{
+			endpoint =c.FullPath()
+		}
 
 		l.WithFields(logrus.Fields{
-			"method":  c.Method(),
-			"path":    c.OriginalURL(),
-			"endpoint": c.Route().Path,
-			"status":  c.Response().StatusCode(),
+			"method":  c.Request.Method,
+			"path":    c.Request.URL.Path,
+			"endpoint": endpoint,
+			"status":  status,
 			"latency": time.Since(start).String(),
-			"ip":      c.IP(),
+			"ip":      c.ClientIP(),
 		}).Info("http_request")
-
-		return err
 	}
 }
