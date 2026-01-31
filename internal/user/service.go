@@ -8,23 +8,23 @@ import (
 	"native-setup/pkg/slice"
 )
 
-type userServiceImpl struct {
-	userRepo UserRepository
+type serviceImpl struct {
+	userRepo Repository
 	logger   *infraapp.AppLogger
 }
 
-func NewUserService(userRepo UserRepository, logger *infraapp.AppLogger) UserService {
-	return &userServiceImpl{userRepo, logger}
+func NewService(repo Repository, logger *infraapp.AppLogger) Service {
+	return &serviceImpl{repo, logger}
 }
 
-func (s *userServiceImpl) FindAllUsers(ctx context.Context, page, limit, offset int) ([]UserResponseDTO, int64, error) {
+func (s *serviceImpl) FindAllUsers(ctx context.Context, page, limit, offset int) ([]DTOResponse, int64, error) {
 
 	users, total, err := s.userRepo.FindAll(ctx, limit, offset)
 	if err != nil {
 		return nil, 0, apperr.Internal(apperr.CodeInternal, "Internal Server Error", err)
 	}
-	userResponses := slice.Map[User, UserResponseDTO](users, func(u User) UserResponseDTO {
-		return UserResponseDTO{
+	userResponses := slice.Map[User, DTOResponse](users, func(u User) DTOResponse {
+		return DTOResponse{
 			ID:        u.ID,
 			Name:      u.Name,
 			Email:     u.Email,
@@ -35,7 +35,7 @@ func (s *userServiceImpl) FindAllUsers(ctx context.Context, page, limit, offset 
 	return userResponses, total, nil
 }
 
-func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserResponseDTO, error) {
+func (s *serviceImpl) FindUserByID(ctx context.Context, id string) (*DTOResponse, error) {
 
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
@@ -45,7 +45,7 @@ func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserRes
 		return nil, apperr.NotFound(apperr.CodeNotFound, "User Not Found", errors.New("User Not Found"))
 	}
 
-	dto := &UserResponseDTO{
+	dto := &DTOResponse{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context" 
+	"context"
 	"native-setup/config"
 	"native-setup/internal/infra/database"
 	"native-setup/internal/user"
@@ -33,9 +33,7 @@ func InitMigrate(ctx context.Context, reset *bool) error {
 	if err := CreateRoleEnum(ctx, db); err != nil {
 		return err
 	}
-	if err != nil {
-		return err
-	}
+ 
 	if *reset {
 		logrus.Println("Resetting database (dropping all tables)...")
 		if err := database.Reset(db); err != nil {

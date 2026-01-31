@@ -2,7 +2,7 @@ package user
 
 import "github.com/gofiber/fiber/v2"
 
-type UserHandler interface {
+type Handler interface {
 	GetAllUsers(c *fiber.Ctx) error
 	GetUserByID(c *fiber.Ctx) error 
 	

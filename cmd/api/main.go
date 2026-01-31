@@ -27,7 +27,7 @@ func main() {
 		Infra: infraModule,
 	})
 	
-	// catch http error
+	// for graceful shutdown
 	quit := make(chan os.Signal, 1);
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM);
 	<-quit

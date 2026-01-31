@@ -6,18 +6,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserRouteParams struct {
-	UserHandler UserHandler
+type RouteParams struct {
+	Handler Handler
 }
-type userRouteImpl struct {
-	userHandler UserHandler
+type routeImpl struct {
+	handler Handler
 }
 
-func NewUserRoute(params UserRouteParams) router.Route {
-	return &userRouteImpl{userHandler: params.UserHandler}
+func NewRoute(params RouteParams) router.Route {
+	return &routeImpl{handler: params.Handler}
 }
-func (r *userRouteImpl) RegisterRoute(route fiber.Router) {
+func (r *routeImpl) RegisterRoute(route fiber.Router) {
 	users := route.Group("/users") 
-	users.Get("/", r.userHandler.GetAllUsers)
-	users.Get("/:id", r.userHandler.GetUserByID)
+	users.Get("/", r.handler.GetAllUsers)
+	users.Get("/:id", r.handler.GetUserByID)
 }

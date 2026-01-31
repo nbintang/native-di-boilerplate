@@ -10,17 +10,17 @@ import (
 	"github.com/gofiber/fiber/v2" 
 )
 
-type userHandlerImpl struct {
-	userService UserService
+type handlerImpl struct {
+	userService Service
 	logger      *infraapp.AppLogger
 	validator   validator.Service
 }
 
-func NewUserHandler(userService UserService, logger *infraapp.AppLogger, validator validator.Service) UserHandler {
-	return &userHandlerImpl{userService, logger, validator}
+func NewHandler(service Service, logger *infraapp.AppLogger, validator validator.Service) Handler {
+	return &handlerImpl{service, logger, validator}
 }
 
-func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
+func (h *handlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	var query pagination.Query
 	if err := c.QueryParser(&query); err != nil {
@@ -35,7 +35,7 @@ func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	}
 
 	meta := pagination.NewMeta(query.Page, query.Limit, total)
-	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpPaginationResponse[[]UserResponseDTO](
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpPaginationResponse[[]DTOResponse](
 		fiber.StatusOK,
 		"Success",
 		data,
@@ -43,7 +43,7 @@ func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	))
 }
 
-func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
+func (h *handlerImpl) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	 
 	ctx := c.UserContext()

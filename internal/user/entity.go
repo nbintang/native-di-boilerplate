@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Role enums.EUserRoleType
+type Role enums.UserRole
 
 type User struct {
 	ID              uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
