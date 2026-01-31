@@ -2,7 +2,7 @@ package user
 
 import "github.com/gin-gonic/gin"
 
-type UserHandler interface {
+type Handler interface {
 	GetAllUsers(c *gin.Context)  
 	GetUserByID(c *gin.Context)  
 }

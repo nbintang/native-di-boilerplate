@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserResponseDTO struct {
+type DTOResponse struct {
 	ID      uuid.UUID  `json:"id"`
 	Name      string    `json:"name"`
 	AvatarURL string    `json:"avatar_url"`

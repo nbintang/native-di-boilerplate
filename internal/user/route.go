@@ -6,15 +6,15 @@ import (
 	"github.com/gin-gonic/gin" 
 )
  
-type userRouteImpl struct {
-	userHandler UserHandler
+type routeImpl struct {
+	handler Handler
 }
 
-func NewUserRoute(userHandler UserHandler) router.Route {
-	return &userRouteImpl{userHandler}
+func NewRoute(userHandler Handler) router.Route {
+	return &routeImpl{userHandler}
 }
-func (r *userRouteImpl) RegisterRoute(route *gin.RouterGroup) {
+func (r *routeImpl) RegisterRoute(route *gin.RouterGroup) {
 	users := route.Group("/users") 
-	users.GET("/", r.userHandler.GetAllUsers)
-	users.GET("/:id", r.userHandler.GetUserByID)
+	users.GET("/", r.handler.GetAllUsers)
+	users.GET("/:id", r.handler.GetUserByID)
 }

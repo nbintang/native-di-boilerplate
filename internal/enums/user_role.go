@@ -1,20 +1,20 @@
 package enums
 
-type EUserRoleType string
+type UserRole string
 
 const (
-	Admin  EUserRoleType = "ADMIN"
-	Member EUserRoleType = "MEMBER"
+	Admin  UserRole = "ADMIN"
+	Member UserRole = "MEMBER"
 )
 
-func (r EUserRoleType) IsValid() bool {
+func (r UserRole) IsValid() bool {
 	return r == Admin || r == Member
 }
 
-func (r EUserRoleType) IsAdmin() bool {
+func (r UserRole) IsAdmin() bool {
 	return r == Admin
 }
 
-func (r EUserRoleType) IsMember() bool {
+func (r UserRole) IsMember() bool {
 	return r == Member
 }

@@ -11,17 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type userHandlerImpl struct {
-	userService UserService
+type handlerImpl struct {
+	userService Service
 	logger      *infraapp.AppLogger
 	validator   validator.Service
 }
 
-func NewUserHandler(userService UserService, logger *infraapp.AppLogger, validator validator.Service) UserHandler {
-	return &userHandlerImpl{userService, logger, validator}
+func NewHandler(userService Service, logger *infraapp.AppLogger, validator validator.Service) Handler {
+	return &handlerImpl{userService, logger, validator}
 }
 
-func (h *userHandlerImpl) GetAllUsers(c *gin.Context) {
+func (h *handlerImpl) GetAllUsers(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var query pagination.Query
@@ -40,7 +40,7 @@ func (h *userHandlerImpl) GetAllUsers(c *gin.Context) {
 
 	meta := pagination.NewMeta(query.Page, query.Limit, total)
 
-	c.JSON(http.StatusOK, httpx.NewHttpPaginationResponse[[]UserResponseDTO](
+	c.JSON(http.StatusOK, httpx.NewHttpPaginationResponse[[]DTOResponse](
 		http.StatusOK,
 		"Success",
 		data,
@@ -48,7 +48,7 @@ func (h *userHandlerImpl) GetAllUsers(c *gin.Context) {
 	))
 }
 
-func (h *userHandlerImpl) GetUserByID(c *gin.Context) {
+func (h *handlerImpl) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 	ctx := c.Request.Context()
 

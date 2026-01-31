@@ -19,9 +19,9 @@ type Module struct {
 }
 
 func Build(params Params) Module {
-	repo := NewUserRepository(params.DB)
-	service := NewUserService(repo, params.Logger)
-	handler := NewUserHandler(service, params.Logger, params.Validator);
-	route := NewUserRoute(handler)
+	repo := NewRepository(params.DB)
+	service := NewService(repo, params.Logger)
+	handler := NewHandler(service, params.Logger, params.Validator);
+	route := NewRoute(handler)
 	return Module{Route: route}
 }
